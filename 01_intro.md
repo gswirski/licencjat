@@ -70,7 +70,7 @@ Umożliwia ona pisanie przenośnych programów na platformę iOS i Android przy 
 
 ```diff
 From 9d902226e565725daf2b35b1627e3471a2ba98b3 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Grzegorz=20=C5=9Awirski?= <grzegorz@swirski.name>
+From: Grzegorz Swirski <grzegorz@swirski.name>
 Date: Thu, 19 May 2016 18:01:20 +0200
 Subject: [PATCH] update for RN 0.26.0
 
@@ -167,6 +167,218 @@ index e49d36e..b8b1d69 100644
    createFragment: require('react-addons-create-fragment'),
    update: require('react-addons-update'),
  };
+-- 
+2.7.4 (Apple Git-66)
+```
+
+### Wyświetlanie struktury testowanych komponentów
+
+Poniższe zmiany pozwalają wykonać funkcję `render()` na testowanych komponentach. Wynikiem
+wywołania funkcji jest drzewo DOM zawierające całą strukturę aktualnego widoku aplikacji.
+Dzięki tym poprawkom można zbadać czy wszystkie niezbędne informacje faktycznie są wyświetlane
+na ekranie i czy dane faktycznie są pogrupowane we właściwy, logiczny sposób.
+
+```diff
+From 1a00ab286fe8fd759bd3baed3ad3e03abcac0289 Mon Sep 17 00:00:00 2001
+From: Grzegorz Swirski <grzegorz@swirski.name>
+Date: Thu, 19 May 2016 18:48:04 +0200
+Subject: [PATCH] render components, show display names in data-rn-name attr
+
+---
+ package.json                               |  1 +
+ src/components/ActivityIndicatorIOS.js     |  2 +-
+ src/components/Image.js                    |  2 +-
+ src/components/ListView.js                 |  2 +-
+ src/components/Navigator.js                |  2 +-
+ src/components/ScrollView.js               |  2 +-
+ src/components/Text.js                     |  2 +-
+ src/components/TouchableWithoutFeedback.js |  2 +-
+ src/components/View.js                     |  2 +-
+ src/components/WebView.js                  |  2 +-
+ src/components/createMockComponent.js      |  2 +-
+ test/MockComponent.js                      | 18 ++++++++++++++++++
+ test/basic-test.js                         |  1 -
+ 13 files changed, 29 insertions(+), 11 deletions(-)
+ create mode 100644 test/MockComponent.js
+
+diff --git a/package.json b/package.json
+index 05d3134..85edabb 100644
+--- a/package.json
++++ b/package.json
+@@ -58,6 +58,7 @@
+     "eslint-plugin-react": "^3.16.1",
+     "mocha": "^2.4.5",
+     "react": "^15.0.2",
++    "react-dom": "^15.0.2",
+     "react-native": "^0.26.0"
+   },
+   "dependencies": {
+diff --git a/src/components/ActivityIndicatorIOS.js b/src/components/ActivityIndicatorIOS.js
+index 721682f..6b7a868 100644
+--- a/src/components/ActivityIndicatorIOS.js
++++ b/src/components/ActivityIndicatorIOS.js
+@@ -38,7 +38,7 @@ const ActivityIndicatorIOS = React.createClass({
+     onLayout: PropTypes.func,
+   },
+   render() {
+-    return null;
++    return <div data-rn-name="ActivityIndicatorIOS" />;
+   },
+ });
+ 
+diff --git a/src/components/Image.js b/src/components/Image.js
+index 3b9b9d8..df21678 100644
+--- a/src/components/Image.js
++++ b/src/components/Image.js
+@@ -114,7 +114,7 @@ var Image = React.createClass({
+     },
+   },
+   render() {
+-    return null;
++    return <div data-rn-name="Image" />;
+   },
+ });
+ 
+diff --git a/src/components/ListView.js b/src/components/ListView.js
+index a4886ca..11924d7 100644
+--- a/src/components/ListView.js
++++ b/src/components/ListView.js
+@@ -178,7 +178,7 @@ const ListView = React.createClass({
+   },
+ 
+   render() {
+-    return null;
++    return <div data-rn-name="ListView" />;
+   },
+ });
+ 
+diff --git a/src/components/Navigator.js b/src/components/Navigator.js
+index 14a1d57..5649f29 100644
+--- a/src/components/Navigator.js
++++ b/src/components/Navigator.js
+@@ -96,7 +96,7 @@ const Navigator = React.createClass({
+     SceneConfigs: NavigatorSceneConfigs,
+   },
+   render() {
+-    return null;
++    return <div data-rn-name="Navigator" />;
+   }
+ });
+ 
+diff --git a/src/components/ScrollView.js b/src/components/ScrollView.js
+index 15759da..f14cd74 100644
+--- a/src/components/ScrollView.js
++++ b/src/components/ScrollView.js
+@@ -312,7 +312,7 @@ const ScrollView = React.createClass({
+   },
+ 
+   render() {
+-    return null;
++    return <div data-rn-name="ScrollView">{this.props.children}</div>;
+   },
+ });
+ 
+diff --git a/src/components/Text.js b/src/components/Text.js
+index a0c4fc4..e4d464c 100644
+--- a/src/components/Text.js
++++ b/src/components/Text.js
+@@ -45,7 +45,7 @@ const Text = React.createClass({
+     allowFontScaling: React.PropTypes.bool,
+   },
+   render() {
+-    return null;
++    return <div data-rn-name="Text">{this.props.children}</div>;
+   },
+ });
+ 
+diff --git a/src/components/TouchableWithoutFeedback.js b/src/components/TouchableWithoutFeedback.js
+index fcc21e3..26421d0 100644
+--- a/src/components/TouchableWithoutFeedback.js
++++ b/src/components/TouchableWithoutFeedback.js
+@@ -71,7 +71,7 @@ const TouchableWithoutFeedback = React.createClass({
+     hitSlop: EdgeInsetsPropType,
+   },
+   render() {
+-    return null;
++    return <div data-rn-name="TouchableWithoutFeedback">{this.props.children}</div>;
+   },
+ });
+ 
+diff --git a/src/components/View.js b/src/components/View.js
+index 1ca0fe0..493f4a7 100644
+--- a/src/components/View.js
++++ b/src/components/View.js
+@@ -278,7 +278,7 @@ const View = React.createClass({
+     needsOffscreenAlphaCompositing: PropTypes.bool,
+   },
+   render() {
+-    return null;
++    return <div data-rn-name="View">{this.props.children}</div>;
+   },
+ });
+ 
+diff --git a/src/components/WebView.js b/src/components/WebView.js
+index fdfe74a..366f1e7 100644
+--- a/src/components/WebView.js
++++ b/src/components/WebView.js
+@@ -137,7 +137,7 @@ const WebView = React.createClass({
+     return React.findNodeHandle(this.refs[RCT_WEBVIEW_REF]);
+   },
+   render() {
+-    return null;
++    return <div data-rn-name="WebView" />;
+   },
+ });
+ 
+diff --git a/src/components/createMockComponent.js b/src/components/createMockComponent.js
+index f7b1a32..de97fbe 100644
+--- a/src/components/createMockComponent.js
++++ b/src/components/createMockComponent.js
+@@ -4,7 +4,7 @@ function createMockComponent(displayName) {
+   return React.createClass({
+     displayName,
+     render() {
+-      return null;
++      return <div data-rn-name={displayName}>{this.props.children}</div>;
+     },
+   });
+ }
+diff --git a/test/MockComponent.js b/test/MockComponent.js
+new file mode 100644
+index 0000000..d31f7d9
+--- /dev/null
++++ b/test/MockComponent.js
+@@ -0,0 +1,18 @@
++import { expect } from 'chai';
++import createMockComponent from '../src/components/createMockComponent';
++import React, { Text } from '../src/react-native';
++import ReactDOMServer from 'react-dom/server';
++
++
++describe('createMockComponent', () => {
++  it ('renders component structure', () => {
++    const Container = createMockComponent('Container');
++
++    let component = <Container><Text>Hello World!</Text></Container>;
++    let html = ReactDOMServer.renderToString(component);
++
++    expect(html).to.contain('data-rn-name="Container"');
++    expect(html).to.contain('data-rn-name="Text"');
++    expect(html).to.contain('Hello World!');
++  });
++});
+diff --git a/test/basic-test.js b/test/basic-test.js
+index 4a27f79..0c80a25 100644
+--- a/test/basic-test.js
++++ b/test/basic-test.js
+@@ -3,7 +3,6 @@ import { expect } from 'chai';
+ 
+ describe('Requires', () => {
+   it('requires', () => {
+-    console.log(Object.keys(React));
+     expect(true).to.equal(true);
+   });
+ });
 -- 
 2.7.4 (Apple Git-66)
 ```
