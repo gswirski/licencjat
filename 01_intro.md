@@ -68,7 +68,7 @@ Umożliwia ona pisanie przenośnych programów na platformę iOS i Android przy 
 ### Wsparcie dla React Native 0.26.0
 0.26.0 jest aktualną wersją w momencie pisania tej pracy.
 
-```
+```diff
 From 9d902226e565725daf2b35b1627e3471a2ba98b3 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Grzegorz=20=C5=9Awirski?= <grzegorz@swirski.name>
 Date: Thu, 19 May 2016 18:01:20 +0200
