@@ -1,13 +1,84 @@
-# Testowanie aplikacji stworzonych w technologii React Native
-*Autor: Grzegorz Świrski*<br />
+# React Native - testy funkcjonalne
+*Grzegorz Świrski*<br />
 *19 maja 2016*
 
 ## Czym jest React Native
-React Native to technologia stworzona przez firmę Facebook, Inc. do tworzenia aplikacji mobilnych.
-Umożliwia ona pisanie przenośnych programów na platformę iOS i Android przy użyciu narzędzi znanych
-
+React Native to technologia do tworzenia aplikacji mobilnych stworzona przez firmę Facebook, Inc. 
+Umożliwia ona pisanie przenośnych, natywnych programów na platformę iOS i Android przy wykorzystaniu
+środowiska JavaScript (wraz ze wszystkimi stabilnymi i dobrze rozwiniętymi bibliotekami oraz narzędziami
+do testowania czy debuggowania).
 
 ## Zakres projektu
+Ponieważ programy napisane w React Native korzystają z kodu JavaScript to programista dostaje od razu
+szereg narzędzi do testowania kodu (mocha, enzyme, chai...). Problem pojawia się jednak w momencie, gdy
+kod programu korzysta z natywnych bibliotek dostępnych tylko i wyłącznie w systemie iOS/Android. Niestety
+wszystkie komponenty Reacta realizujące warstwę widoku muszą integrować się z natywnym środowiskiem, zatem
+automatyczne testowanie interfejsu użytkownika staje się niemożliwe lub trudne.
+
+Na szczęście React Native został zbudowany na bazie przeglądarkowej wersji Reacta. Dzięki temu można próbować
+zastępować natywne widoki (nazywane komponentami) widokami zwykłego Reacta. Te drugie możemy testować na komputerze,
+gdyż z założenia zostały one przystosowane do takiego środowiska. Jedną z bibliotek robiących właśnie taką
+podmianę jest `react-native-mock`. Niestety projekt ten, chociaż pozwala uruchomić testy, nie dostarcza
+wystarczająco dużo informacji o aktualnie wyświetlanym interfejsie użytkownika. Ta praca rozszerza wspomnianą
+bibliotekę tak, by można było pisać bardziej zaawansowane testy interfejsu użytkownika, a także poprawia
+kompatybilność z aktualną wersją Reacta Native.
+
+## Przykłady
+
+**src/MyComponent.js**
+```js
+import React, { Component } from 'react';
+import { ListView, Text } from 'react-native';
+
+class CapitalizedText extends Component {
+    render() {
+        const text = this.props.text.toUpperCase();
+        return <Text>{text}</Text>;
+    }
+}
+
+export default class MyComponent extends Component {
+    constructor(props) {
+        super(props);
+        
+        // build data source
+    }
+    
+    renderRow = (rowData) => {
+        return <CapitalizedText text={rowData} />;
+    };
+    
+    render() {
+        return (
+            <ListView
+                dataSource={this.state.dataSource}
+                renderRow={this.renderRow} />
+        );
+    }
+}
+```
+
+**test/MyComponent.js**
+
+```js
+import { expect } from 'chai';
+import { shallow } from 'enzyme';
+import React from 'react';
+import MyComponent from '../src/MyComponent';
+
+describe('MyComponent', () => {
+    it ('renders list with capitalized labels', () => {
+        const data = ['lorem', 'ipsum', 'dolor'];
+        const wrapper = shallow(<MyComponent items={data} />);
+        const html = wrapper.html();
+        
+        expect(wrapper.find('[data-rn-name=ListRow]').length).to.equal(3);
+        expect(wrapper.html()).to.contain('LOREM');
+        expect(wrapper.html()).to.contain('IPSUM');
+        expect(wrapper.html()).to.contain('DOLOR');
+    });
+});
+```
 
 ## Instalacja
 0. Zainstaluj React Native podążając za instrukcjami: https://facebook.github.io/react-native/docs/getting-started.html
