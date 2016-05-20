@@ -6,7 +6,7 @@
 # React Native - automatyczne testy funkcjonalne
 **Praca licencjacja na kierunku INFORMATYKA ANALITYCZNA**
 
-*Opiekun pracy: dr Grzegrz Gutowski*
+*Opiekun pracy: dr Grzegorz Gutowski*
 
 *Kraków, 2016*
 
