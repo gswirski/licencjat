@@ -1,29 +1,54 @@
-# React Native - testy funkcjonalne
-*Grzegorz Świrski*<br />
-*19 maja 2016*
+***Uniwersytet Jagielloński***<br />
+*Wydział Matematyki i Informatyki*<br />
+*Zespół Katedr i Zakładów Informatyki Matematycznej*
 
-## Czym jest React Native
-React Native to technologia do tworzenia aplikacji mobilnych stworzona przez firmę Facebook, Inc. 
-Umożliwia ona pisanie przenośnych, natywnych programów na platformę iOS i Android przy wykorzystaniu
-środowiska JavaScript (wraz ze wszystkimi stabilnymi i dobrze rozwiniętymi bibliotekami oraz narzędziami
-do testowania czy debuggowania).
+### Grzegorz Świrski
+# React Native - automatyczne testy funkcjonalne
+**Praca licencjacja na kierunku INFORMATYKA ANALITYCZNA**
+
+*Opiekun pracy: dr Grzegrz Gutowski*
+
+*Kraków, 2016*
+
+
+## O projekcie React Native
+React Native to technologia służąca do tworzenia przenośnych aplikacji mobilnych. Programy napisane przy
+użyciu React Native działają w środowisku JavaScript co pozwala wykorzystywać spory zasób bibliotek do
+automatycznego testowania i narzędzi do debugowania stworzonych dla tego języka. Wynikowy program
+wykorzystuje komponenty UI systemu operacyjnego na którym się wykonuje tym samym dostarczając użytkownikowi
+natywną jakość interfejsu.
+
+## O testach funkcjonalnych
+Testy automatyczne weryfikują, czy program działa poprawnie. Dzięki temu po wprowadzeniu zmian w aplikacji
+jesteśmy w stanie szybko sprawdzić, czy nie zepsuliśmy jakiejś innej, wcześniej działającej logiki.
+Testy funkcjonalne działają na poziomie end-to-end. Zaczynają od pewnego widoku użytkownika, symulują
+akcje użytkownika (np. kliknięcie w element tekstowy) po czym sprawdzają, czy wynikowy widok jest poprawny.
+Przykładowo, czy po naciśnięciu przycisku "dodaj komentarz" komentarz faktycznie wyświetla się
+na stronie.
 
 ## Zakres projektu
-Ponieważ programy napisane w React Native korzystają z kodu JavaScript to programista dostaje od razu
-szereg narzędzi do testowania kodu (mocha, enzyme, chai...). Problem pojawia się jednak w momencie, gdy
-kod programu korzysta z natywnych bibliotek dostępnych tylko i wyłącznie w systemie iOS/Android. Niestety
-wszystkie komponenty Reacta realizujące warstwę widoku muszą integrować się z natywnym środowiskiem, zatem
-automatyczne testowanie interfejsu użytkownika staje się niemożliwe lub trudne.
+Istnieje bardzo dużo narzędzi do automatycznego testowania kodu stworzonych dla języka JavaScript.
+Niestety, ponieważ React Native musi skomunikować się z systemem operacyjnym iOS lub Android, to uruchamianie
+tych testów na komputerze jest bardzo problematyczne. Symulowanie mobilnego systemu operacyjnego (albo testowanie
+na zewnętrznym urządzeniu) wprowadza spory narzut czasowy.
 
-Na szczęście React Native został zbudowany na bazie przeglądarkowej wersji Reacta. Dzięki temu można próbować
-zastępować natywne widoki (nazywane komponentami) widokami zwykłego Reacta. Te drugie możemy testować na komputerze,
-gdyż z założenia zostały one przystosowane do takiego środowiska. Jedną z bibliotek robiących właśnie taką
-podmianę jest `react-native-mock`. Niestety projekt ten, chociaż pozwala uruchomić testy, nie dostarcza
-wystarczająco dużo informacji o aktualnie wyświetlanym interfejsie użytkownika. Ta praca rozszerza wspomnianą
-bibliotekę tak, by można było pisać bardziej zaawansowane testy interfejsu użytkownika, a także poprawia
-kompatybilność z aktualną wersją Reacta Native.
+Na szczęście React Native oparty jest o inną, przeglądarkową wersję Reacta. Dzięki temu możemy próbować zastąpić
+natywne elementy interfejsu (czyli te elementy, gdzie React Native oczekuje mobilnego systemu operacyjnego) przez
+widoki HTML-owe (czyli te używane w przeglądarce). Takie podejście pozwala nam przybliżyć sposób działania programu
+i przetestować czy wszystkie istotne informacje faktycznie zostały wyświetlone na ekranie i czy interakcje
+z użytkownikiem zachowują się tak jak powinny.
 
-## Przykłady
+`react-native-mock` to biblioteka, która implementuje takie właśnie podejście - zastępowanie komponentów natywnych
+przez komponenty HTML-owe. Ta praca rozszerza działanie biblioteki o możliwość wyświetlania pełnej struktury
+widoku i wchodzenia w interakcje z elementami (kliknięcia). Poprawione zostało również wsparcie dla aktualnej
+wersji React Native.
+
+## Przykład
+
+Weźmy program, który dostaje tablicę `string`ów (wejście) i zwraca widok listy (natywny komponent)
+z wyświetlonymi wszystkimi elementami tablicy. Dodatkowo będziemy chcieli, żeby domyślnie wszystkie litery
+były wielkie, natomiast po kliknięciu na element wszystkie litery (tego konkretnego elementu) były małe.
+Implementacja takiego komponentu w React Native znajduje się poniżej.
 
 **src/ListComponent.js**
 ```js
@@ -69,6 +94,11 @@ export default class ListComponent extends Component {
 }
 ```
 
+Dzięki wprowadzonym zmianom w bibliotece `react-native-mock` przetestowanie takiego kodu staje się
+możliwe. Poniższy test sprawdza, czy widok listy faktycznie zawiera wszystkie przekazane elementuy i każdy z nich
+napisany jest wielkimi literami. Sprawdza również, czy po kliknięciu na któryś z elementów listy 
+litery zostają zamienione na małe.
+
 **test/ListComponent.js**
 
 ```js
@@ -104,20 +134,30 @@ describe('<ListComponent />', () => {
 ```
 
 ## Instalacja
-0. Zainstaluj React Native podążając za instrukcjami: https://facebook.github.io/react-native/docs/getting-started.html
-1. Stwórz nowy projekt w React Native:
+1. Zainstaluj React Native
+
+    ```
+    https://facebook.github.io/react-native/docs/getting-started.html
+    ```
+
+2. Stwórz nowy projekt
 
     ```
     react-native init ExampleProject && mkdir ExampleProject/src && mkdir -p ExampleProject/test/setup
     ```
-2. Zainstaluj niezbędne zależności:
-  - `npm install --save-dev mocha` - biblioteka do organizacji testów
-  - `npm install --save-dev chai` - biblioteka do definiowania wymaganych rezultatów w testach
-  - `npm install --save-dev enzyme` - pomocnicza biblioteka do testowania aplikacji stworzonych w React
-  - `npm install --save-dev react-dom` - pomocnicza biblioteka do testowania aplikacji stworzonych w React
-  - `npm install --save-dev mocha-jsdom` - implementacja WHATWG DOM na potrzeby testów automatycznych
-  - `npm install --save-dev gswirski/react-native-mock` - zestaw "mocków" dla React Native.
-3. Stwórz plik `test/setup/compiler.js`:
+
+3. Zainstaluj niezbędne zależności
+
+    ```
+    npm install --save-dev mocha # test-runner
+    npm install --save-dev chai # assertions/expectations
+    npm install --save-dev enzyme # zbiór helperów do testowania Reacta
+    npm install --save-dev react-dom # zbiór helperów do testowania Reacta w środowisku DOM
+    npm install --save-dev mocha-jsdom # implementacja WHATWG DOM na potrzeby testów automatycznych
+    npm install --save-dev gswirski/react-native-mock # zestaw "mocków" dla React Native.
+    ```
+
+4. Stwórz plik `test/setup/compiler.js` (wsparcie dla składniowych rozszerzeń Reacta; transpiler do JavaScript)
 
     ```js
     var fs = require('fs');
@@ -149,7 +189,8 @@ describe('<ListComponent />', () => {
       return module._compile(output, fileName);
     };
     ```
-4. Uzupełnij sekcję "scripts" w `package.json`:
+
+5. Uzupełnij sekcję "scripts" w `package.json`
 
     ```
     "scripts": {
@@ -271,7 +312,7 @@ index e49d36e..b8b1d69 100644
 Poniższe zmiany pozwalają wykonać funkcję `render()` na testowanych komponentach. Wynikiem
 wywołania funkcji jest drzewo DOM zawierające całą strukturę aktualnego widoku aplikacji.
 Dzięki tym poprawkom można zbadać czy wszystkie niezbędne informacje faktycznie są wyświetlane
-na ekranie i czy dane faktycznie są pogrupowane we właściwy, logiczny sposób.
+na ekranie i czy dane pogrupowane są we właściwy, logiczny sposób.
 
 ```diff
 From 1a00ab286fe8fd759bd3baed3ad3e03abcac0289 Mon Sep 17 00:00:00 2001
@@ -479,6 +520,10 @@ index 4a27f79..0c80a25 100644
 ```
 
 ### Wsparcie dla `ListView`
+Aby zapewnić wysoką wydajność, `ListView` korzysta z niestandardowego mechanizmu przekazywania
+modelu do widoku listy. Ta poprawka jest kontynuacją pracy nad generowaniem pełnego drzewa DOM
+aktualnie wyświetlanego widoku.
+
 ```diff
 From 58084a6e18bf1f1939fd6f570bdf87ff4ee38f22 Mon Sep 17 00:00:00 2001
 From: Grzegorz Swirski <grzegorz@swirski.name>
@@ -669,6 +714,10 @@ index 11924d7..e3d2713 100644
 ```
 
 ### Wsparcie dla `press events`
+`press events` (dotknięcia ekranu przez użytkownika) są symulowane za pomocą `click events`
+(użytkownik klika myszką). Dzięki takiemu podejściu możemy wykorzystywać biblioteki stworzone
+do testowania HTML-owej wersji Reacta (m.in. enzyme użyte w przykładzie powyżej).
+
 ```diff
 From e3f6f3b62a4513aaa1dcdbd7e588165833bbee0c Mon Sep 17 00:00:00 2001
 From: Grzegorz Swirski <grzegorz@swirski.name>
