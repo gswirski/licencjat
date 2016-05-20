@@ -95,8 +95,8 @@ export default class ListComponent extends Component {
 ```
 
 Dzięki wprowadzonym zmianom w bibliotece `react-native-mock` przetestowanie takiego kodu staje się
-możliwe. Poniższy test sprawdza, czy widok listy faktycznie zawiera wszystkie przekazane elementuy i każdy z nich
-napisany jest wielkimi literami. Sprawdza również, czy po kliknięciu na któryś z elementów listy 
+możliwe. Poniższy test sprawdza, czy widok listy faktycznie zawiera wszystkie przekazane elementy i
+czy każdy z nich napisany jest wielkimi literami. Sprawdza również, czy po kliknięciu na element listy jego
 litery zostają zamienione na małe.
 
 **test/ListComponent.js**
