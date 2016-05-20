@@ -25,7 +25,7 @@ kompatybilność z aktualną wersją Reacta Native.
 
 ## Przykłady
 
-**src/MyComponent.js**
+**src/ListComponent.js**
 ```js
 import React, { Component } from 'react';
 import { ListView, Text } from 'react-native';
@@ -46,7 +46,7 @@ class CapitalizedText extends Component {
     }
 }
 
-export default class MyComponent extends Component {
+export default class ListComponent extends Component {
     constructor(props) {
         super(props);
         let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 != r2 });
@@ -69,26 +69,38 @@ export default class MyComponent extends Component {
 }
 ```
 
-**test/MyComponent.js**
+**test/ListComponent.js**
 
 ```js
+import jsdom from 'mocha-jsdom';
+import { mount } from 'enzyme';
 import { expect } from 'chai';
-import { shallow } from 'enzyme';
 import React from 'react';
-import MyComponent from '../src/MyComponent';
+import ListComponent from '../src/ListComponent';
 
-describe('MyComponent', () => {
-    it ('renders list with capitalized labels', () => {
-        const data = ['lorem', 'ipsum', 'dolor'];
-        const wrapper = shallow(<MyComponent items={data} />);
-        const html = wrapper.html();
-        
-        expect(wrapper.find('[data-rn-name=ListRow]').length).to.equal(3);
-        expect(wrapper.html()).to.contain('LOREM');
-        expect(wrapper.html()).to.contain('IPSUM');
-        expect(wrapper.html()).to.contain('DOLOR');
-    });
+describe('<ListComponent />', () => {
+  jsdom();
+
+  it ('renders list with capitalized labels', () => {
+    const data = ['lorem', 'ipsum', 'dolor'];
+    const wrapper = mount(<ListComponent items={data} />);
+    const html = wrapper.html();
+
+    expect(wrapper.find('[data-rn-name="ListViewRow"]').length).to.equal(3);
+    expect(wrapper.html()).to.contain('LOREM');
+    expect(wrapper.html()).to.contain('IPSUM');
+    expect(wrapper.html()).to.contain('DOLOR');
+  });
+
+  it('responds to clicks', () => {
+    const data = ['lorem', 'ipsum', 'dolor'];
+    const wrapper = mount(<ListComponent items={data} />);
+    wrapper.find('[data-rn-name="ListViewRow"] Text').at(1).simulate('click');
+    const html = wrapper.html();
+    expect(wrapper.html()).to.contain('ipsum');
+  });
 });
+
 ```
 
 ## Instalacja
@@ -103,6 +115,7 @@ describe('MyComponent', () => {
   - `npm install --save-dev chai` - biblioteka do definiowania wymaganych rezultatów w testach
   - `npm install --save-dev enzyme` - pomocnicza biblioteka do testowania aplikacji stworzonych w React
   - `npm install --save-dev react-dom` - pomocnicza biblioteka do testowania aplikacji stworzonych w React
+  - `npm install --save-dev mocha-jsdom` - implementacja WHATWG DOM na potrzeby testów automatycznych
   - `npm install --save-dev gswirski/react-native-mock` - zestaw "mocków" dla React Native.
 3. Stwórz plik `test/setup/compiler.js`:
 
@@ -461,6 +474,238 @@ index 4a27f79..0c80a25 100644
      expect(true).to.equal(true);
    });
  });
+-- 
+2.7.4 (Apple Git-66)
+```
+
+### Wsparcie dla `ListView`
+```diff
+From 58084a6e18bf1f1939fd6f570bdf87ff4ee38f22 Mon Sep 17 00:00:00 2001
+From: Grzegorz Swirski <grzegorz@swirski.name>
+Date: Fri, 20 May 2016 11:53:18 +0200
+Subject: [PATCH] render list mock
+
+---
+ src/api/ListViewDataSource.js | 60 ++++++++++++++++++++++++++++++------
+ src/components/ListView.js    | 71 +++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 108 insertions(+), 23 deletions(-)
+
+diff --git a/src/api/ListViewDataSource.js b/src/api/ListViewDataSource.js
+index 195f588..7804185 100644
+--- a/src/api/ListViewDataSource.js
++++ b/src/api/ListViewDataSource.js
+@@ -1,26 +1,66 @@
++function defaultGetRowData(dataBlob, sectionId, rowId) {
++  return dataBlob[sectionId][rowId];
++}
+ 
++function defaultGetSectionHeaderData(dataBlob, sectionId) {
++  return dataBlob[sectionId];
++}
+ 
+ class ListViewDataSource {
+-  constructor() {
++  constructor(params) {
++    this._config = {
++      rowHasChanged: params.rowHasChanged,
++      getRowData: params.getRowData || defaultGetRowData,
++      sectionHeaderHasChanged: params.sectionHeaderHasChanged,
++      getSectionHeaderData: params.getSectionHeaderData || defaultGetSectionHeaderData,
++    };
+     this._dataBlob = null;
++    this._sectionIds = [];
++    this._rowIds = [];
+   }
+ 
+   getRowCount() {
+ 
+   }
+ 
+-  cloneWithRows(data) {
+-    var newSource = new ListViewDataSource();
+-    newSource._dataBlob = data;
++  cloneWithRows(dataBlob, rowIdentities) {
++    let rowIds = (rowIdentities) ? [rowIdentities] : null;
++
++    return this.cloneWithRowsAndSections({ s1: dataBlob }, ['s1'], rowIds);
++  }
++
++  cloneWithRowsAndSections(dataBlob, sectionIdentities, rowIdentities) {
++    var newSource = new ListViewDataSource(this._config);
++    newSource._dataBlob = dataBlob;
++
++    if (sectionIdentities) {
++      newSource._sectionIds = sectionIdentities;
++    } else {
++      newSource._sectionIds = Object.keys(dataBlob);
++    }
++
++    if (rowIdentities) {
++      newSource._rowIds = rowIdentities;
++    } else {
++      newSource._rowIds= [];
++      newSource._sectionIds.forEach((sectionId) => {
++        newSource._rowIds.push(Object.keys(dataBlob[sectionId]));
++      });
++    }
+ 
+     return newSource;
+   }
+-  
+-  cloneWithRowsAndSections(data) {
+-      var newSource = new ListViewDataSource();
+-      newSource._dataBlob = data;
+-  
+-      return newSource;
++
++  getSection(sectionId) {
++    return this._config.getSectionHeaderData(this._dataBlob, sectionId);
++  }
++
++  getRow(sectionId, rowId) {
++    return this._config.getRowData(this._dataBlob, sectionId, rowId);
++  }
++
++  getRowIds(sectionId) {
++    return this._rowIds[this._sectionIds.indexOf(sectionId)];
+   }
+ }
+ 
+diff --git a/src/components/ListView.js b/src/components/ListView.js
+index 11924d7..e3d2713 100644
+--- a/src/components/ListView.js
++++ b/src/components/ListView.js
+@@ -1,22 +1,11 @@
+ import React from 'react';
++const { PropTypes } = React;
+ import ScrollResponder from '../mixins/ScrollResponder';
+ import TimerMixin from 'react-timer-mixin';
+ import ScrollViewManager from '../NativeModules/ScrollViewManager';
+ import ScrollView from './ScrollView';
+ 
+ var ListViewDataSource = require('../api/ListViewDataSource');
+-//var React = require('React');
+-
+-//var ScrollView = require('ScrollView');
+-//var ScrollResponder = require('ScrollResponder');
+-// var StaticRenderer = require('StaticRenderer');  // Unused
+-//var TimerMixin = require('react-timer-mixin');
+-
+-// var isEmpty = require('isEmpty'); // Doesnt resolve
+-// var logError = require('logError'); // Doesnt resolve
+-//var merge = require('merge');
+-
+-const { PropTypes } = React;
+ 
+ const DEFAULT_PAGE_SIZE = 1;
+ const DEFAULT_INITIAL_ROWS = 10;
+@@ -178,7 +167,63 @@ const ListView = React.createClass({
+   },
+ 
+   render() {
+-    return <div data-rn-name="ListView" />;
++    let ds = this.props.dataSource;
++
++    let header = null;
++    if (this.props.renderHeader) {
++      header = <div data-rn-name="ListViewHeader">{this.props.renderHeader()}</div>;
++    }
++
++    let footer = null;
++    if (this.props.renderFooter) {
++      footer = <div data-rn-name="ListViewFooter">{this.props.renderFooter()}</div>;
++    }
++
++    let sections = ds._sectionIds.map((section) => {
++      let sectionData = ds.getSection(section);
++
++      let sectionHeader = null;
++      if (this.props.renderSectionHeader) {
++        sectionHeader = (
++          <div data-rn-name="ListViewSectionHeader">
++            {this.props.renderSectionHeader(sectionData, section)}
++          </div>
++        );
++      }
++
++      let rows = ds.getRowIds(section).map((row) => {
++        let rowData = ds.getRow(section, row);
++
++        let rowView = null;
++        if (this.props.renderRow) {
++          rowView = (
++            <div data-rn-name="ListViewRow" key={row}>
++              {this.props.renderRow(rowData, section, row)}
++            </div>
++          );
++        }
++
++        return rowView;
++      });
++
++      return (
++        <div data-rn-name="ListViewSection" key={section}>
++          {sectionHeader}
++          <div data-rn-name="ListViewSectionRows">
++            {rows}
++          </div>
++        </div>
++      );
++    });
++
++
++    return (
++      <div data-rn-name="ListView">
++        {header}
++        {sections}
++        {footer}
++      </div>
++    );
+   },
+ });
+ 
+-- 
+2.7.4 (Apple Git-66)
+```
+
+### Wsparcie dla `press events`
+```diff
+From e3f6f3b62a4513aaa1dcdbd7e588165833bbee0c Mon Sep 17 00:00:00 2001
+From: Grzegorz Swirski <grzegorz@swirski.name>
+Date: Fri, 20 May 2016 11:54:25 +0200
+Subject: [PATCH] support press events in JSDOM env
+
+---
+ src/components/Text.js                     | 2 +-
+ src/components/TouchableWithoutFeedback.js | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/components/Text.js b/src/components/Text.js
+index e4d464c..457f2c4 100644
+--- a/src/components/Text.js
++++ b/src/components/Text.js
+@@ -45,7 +45,7 @@ const Text = React.createClass({
+     allowFontScaling: React.PropTypes.bool,
+   },
+   render() {
+-    return <div data-rn-name="Text">{this.props.children}</div>;
++    return <div data-rn-name="Text" onClick={this.props.onPress}>{this.props.children}</div>;
+   },
+ });
+ 
+diff --git a/src/components/TouchableWithoutFeedback.js b/src/components/TouchableWithoutFeedback.js
+index 26421d0..8f4883c 100644
+--- a/src/components/TouchableWithoutFeedback.js
++++ b/src/components/TouchableWithoutFeedback.js
+@@ -71,7 +71,7 @@ const TouchableWithoutFeedback = React.createClass({
+     hitSlop: EdgeInsetsPropType,
+   },
+   render() {
+-    return <div data-rn-name="TouchableWithoutFeedback">{this.props.children}</div>;
++    return <div data-rn-name="TouchableWithoutFeedback" onClick={onPress}>{this.props.children}</div>;
+   },
+ });
+ 
 -- 
 2.7.4 (Apple Git-66)
 ```
