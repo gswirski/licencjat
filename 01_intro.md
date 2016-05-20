@@ -31,17 +31,28 @@ import React, { Component } from 'react';
 import { ListView, Text } from 'react-native';
 
 class CapitalizedText extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { text: props.text.toUpperCase() };
+    }
+    
+    onPress = () => {
+        const text = this.state.text.toLowerCase();
+        this.setState({ text }};
+    };
+    
     render() {
-        const text = this.props.text.toUpperCase();
-        return <Text>{text}</Text>;
+        return <Text onPress={this.onPress}>{this.state.text}</Text>;
     }
 }
 
 export default class MyComponent extends Component {
     constructor(props) {
         super(props);
-        
-        // build data source
+        let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 != r2 });
+        this.state = {
+            dataSource = ds.cloneWithRows(props.items),
+        };
     }
     
     renderRow = (rowData) => {
