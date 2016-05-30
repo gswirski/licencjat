@@ -63,7 +63,7 @@ class CapitalizedText extends Component {
     
     onPress = () => {
         const text = this.state.text.toLowerCase();
-        this.setState({ text }};
+        this.setState({ text });
     };
     
     render() {
@@ -76,7 +76,7 @@ export default class ListComponent extends Component {
         super(props);
         let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 != r2 });
         this.state = {
-            dataSource = ds.cloneWithRows(props.items),
+            dataSource: ds.cloneWithRows(props.items),
         };
     }
     
