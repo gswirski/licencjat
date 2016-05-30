@@ -38,8 +38,8 @@ widoki HTML-owe (czyli te używane w przeglądarce). Takie podejście pozwala na
 i przetestować czy wszystkie istotne informacje faktycznie zostały wyświetlone na ekranie i czy interakcje
 z użytkownikiem zachowują się tak jak powinny.
 
-`react-native-mock` to biblioteka, która implementuje takie właśnie podejście - zastępowanie komponentów natywnych
-przez komponenty HTML-owe. Ta praca rozszerza działanie biblioteki o możliwość wyświetlania pełnej struktury
+`react-native-mock` to biblioteka stworzona przez Lelanda Richardsona, która implementuje takie właśnie podejście -
+zastępowanie komponentów natywnych przez komponenty HTML-owe. Niestety w oryginale narzędzie to nie dostarcza pełnych informacji o strukturze widoku. Można sprawdzać jakie (bezpośrednie) dzieci zawiera aktualny komponent, jednak głębsza inspekcja jest bardzo kłopotliwa. Ta praca rozszerza działanie biblioteki o możliwość wyświetlania pełnej struktury
 widoku i wchodzenia w interakcje z elementami (kliknięcia). Poprawione zostało również wsparcie dla aktualnej
 wersji React Native.
 
@@ -202,7 +202,30 @@ describe('<ListComponent />', () => {
 ## Implementacja projektu
 
 ### Wsparcie dla React Native 0.26.0
-0.26.0 jest aktualną wersją w momencie pisania tej pracy.
+
+Ostatnią wspieraną wersją był React Native 0.18.1. W momencie pisania tej pracy aktualną wersją jest 0.26.0.
+
+### Wyświetlanie struktury testowanych komponentów
+
+Poniższe zmiany pozwalają wykonać funkcję `render()` na testowanych komponentach. Wynikiem
+wywołania funkcji jest drzewo DOM zawierające całą strukturę aktualnego widoku aplikacji.
+Dzięki tym poprawkom można zbadać czy wszystkie niezbędne informacje faktycznie są wyświetlane
+na ekranie i czy dane pogrupowane są we właściwy, logiczny sposób.
+
+### Wsparcie dla `ListView`
+
+Aby zapewnić wysoką wydajność, `ListView` korzysta z niestandardowego mechanizmu przekazywania
+modelu do widoku listy. Ta poprawka jest kontynuacją pracy nad generowaniem pełnego drzewa DOM
+aktualnie wyświetlanego widoku.
+
+### Wsparcie dla `press events`
+`press events` (dotknięcia ekranu przez użytkownika) są symulowane za pomocą `click events`
+(użytkownik klika myszką). Dzięki takiemu podejściu możemy wykorzystywać biblioteki stworzone
+do testowania HTML-owej wersji Reacta (m.in. enzyme użyte w przykładzie powyżej).
+
+### Kod
+
+#### Wsparcie dla React Native 0.26.0
 
 ```diff
 From 9d902226e565725daf2b35b1627e3471a2ba98b3 Mon Sep 17 00:00:00 2001
@@ -307,12 +330,7 @@ index e49d36e..b8b1d69 100644
 2.7.4 (Apple Git-66)
 ```
 
-### Wyświetlanie struktury testowanych komponentów
-
-Poniższe zmiany pozwalają wykonać funkcję `render()` na testowanych komponentach. Wynikiem
-wywołania funkcji jest drzewo DOM zawierające całą strukturę aktualnego widoku aplikacji.
-Dzięki tym poprawkom można zbadać czy wszystkie niezbędne informacje faktycznie są wyświetlane
-na ekranie i czy dane pogrupowane są we właściwy, logiczny sposób.
+#### Wyświetlanie struktury testowanych komponentów
 
 ```diff
 From 1a00ab286fe8fd759bd3baed3ad3e03abcac0289 Mon Sep 17 00:00:00 2001
@@ -519,10 +537,7 @@ index 4a27f79..0c80a25 100644
 2.7.4 (Apple Git-66)
 ```
 
-### Wsparcie dla `ListView`
-Aby zapewnić wysoką wydajność, `ListView` korzysta z niestandardowego mechanizmu przekazywania
-modelu do widoku listy. Ta poprawka jest kontynuacją pracy nad generowaniem pełnego drzewa DOM
-aktualnie wyświetlanego widoku.
+#### Wsparcie dla `ListView`
 
 ```diff
 From 58084a6e18bf1f1939fd6f570bdf87ff4ee38f22 Mon Sep 17 00:00:00 2001
@@ -713,10 +728,7 @@ index 11924d7..e3d2713 100644
 2.7.4 (Apple Git-66)
 ```
 
-### Wsparcie dla `press events`
-`press events` (dotknięcia ekranu przez użytkownika) są symulowane za pomocą `click events`
-(użytkownik klika myszką). Dzięki takiemu podejściu możemy wykorzystywać biblioteki stworzone
-do testowania HTML-owej wersji Reacta (m.in. enzyme użyte w przykładzie powyżej).
+#### Wsparcie dla `press events`
 
 ```diff
 From e3f6f3b62a4513aaa1dcdbd7e588165833bbee0c Mon Sep 17 00:00:00 2001
@@ -758,3 +770,11 @@ index 26421d0..8f4883c 100644
 -- 
 2.7.4 (Apple Git-66)
 ```
+
+## Podsumowanie
+
+Wprowadzone przeze mnie zmiany usprawniają pracę z biblioteką `react-native-mock` i pozwalają na testowanie interakcji z użytkownikiem. Zaprezentowane podejście do testowania Reacta Native z sukcesem zostało wykorzystane w komercyjnym projekcie (nie jest publicznie dostępny). Kod z przytoczonego wyżej przykładu kompiluje i wykonuje się bez błędów.
+
+Sporo rzeczy wciąż pozostaje do zrobienia. Nie wszystkie gesty użytkownika są obsługiwane - brakuje wsparcia m.in dla długich kliknięć, 3D Touch (iPhone 6s), przesuwania i "szczypania" dwoma palcami (powiększanie/pomniejszanie). Nie wszystkie komponenty Reacta Native są obsługiwane. Nie do końca jest jasne jak zastępować natywne komponenty stworzone przez użytkownika. Pomimo wszystkich tych braków biblioteka `react-native-mock` pozwala przetestować bardzo dużo typowych scenariuszy.
+
+Oryginalny projekt znajduje się na https://github.com/lelandrichardson/react-native-mock i rozpowszechniany jest na licencji MIT (plik `LICENCE` w katalogu projektu). Moje zmiany dostępne są na https://github.com/gswirski/react-native-mock.
