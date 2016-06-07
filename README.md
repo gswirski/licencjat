@@ -205,10 +205,17 @@ describe('<ListComponent />', () => {
 
 Ostatnią wspieraną wersją był React Native 0.18.1. W momencie pisania tej pracy aktualną wersją jest 0.26.0.
 
+* Wszystkie zależności zostały zaaktualizowane.
+* Transpilator babel korzysta teraz z oficjalnej konfiguracji dla React Native. Wcześniej lista
+potrzebnych pluginów była zduplikowana i mogła się przedawnić.
+* Dodatek `cloneWithProps`, niedostępny w najnowszej wersji React Native, został usunięty.
+
 ### Wyświetlanie struktury testowanych komponentów
 
-Poniższe zmiany pozwalają wykonać funkcję `render()` na testowanych komponentach. Wynikiem
+Wprowadzone zmiany pozwalają wykonać funkcję `render()` na testowanych komponentach. Wynikiem
 wywołania funkcji jest drzewo DOM zawierające całą strukturę aktualnego widoku aplikacji.
+Elementy `div` używane do prezentacji struktury zawierają informacje o typach oryginalnych
+komponentów i treść elementów tekstowych.
 Dzięki tym poprawkom można zbadać czy wszystkie niezbędne informacje faktycznie są wyświetlane
 na ekranie i czy dane pogrupowane są we właściwy, logiczny sposób.
 
@@ -218,10 +225,26 @@ Aby zapewnić wysoką wydajność, `ListView` korzysta z niestandardowego mechan
 modelu do widoku listy. Ta poprawka jest kontynuacją pracy nad generowaniem pełnego drzewa DOM
 aktualnie wyświetlanego widoku.
 
+Nowa implementacja klasy `ListViewDataSource` (źródło danych) symuluje zachowanie kodu React Native.
+`ListView` na urządzeniu mobilnym renderuje tylko kontrolki widoczne na ekranie. Takie podejście znacząco
+utrudnia badanie czy wszystkie potrzebne informacje znajdują się na liście. Na potrzeby testów
+wszystkie elementy listy generowane są zachłannie.
+
+Reprezentacja DOM listy jest wzbogacona o osobne bloki (dodatkowe elementy `div`) dla sekcji, nagłówków
+i stopki co ułatwia logiczną analizę widoku.
+
 ### Wsparcie dla `press events`
 `press events` (dotknięcia ekranu przez użytkownika) są symulowane za pomocą `click events`
 (użytkownik klika myszką). Dzięki takiemu podejściu możemy wykorzystywać biblioteki stworzone
 do testowania HTML-owej wersji Reacta (m.in. enzyme użyte w przykładzie powyżej).
+
+## Podsumowanie
+
+Wprowadzone przeze mnie zmiany usprawniają pracę z biblioteką `react-native-mock` i pozwalają na testowanie interakcji z użytkownikiem. Zaprezentowane podejście do testowania Reacta Native z sukcesem zostało wykorzystane w komercyjnym projekcie (nie jest publicznie dostępny). Kod z przytoczonego wyżej przykładu kompiluje i wykonuje się bez błędów.
+
+Sporo rzeczy wciąż pozostaje do zrobienia. Nie wszystkie gesty użytkownika są obsługiwane - brakuje wsparcia m.in dla długich kliknięć, 3D Touch (iPhone 6s), przesuwania i "szczypania" dwoma palcami (powiększanie/pomniejszanie). Nie wszystkie komponenty Reacta Native są obsługiwane. Nie do końca jest jasne jak zastępować natywne komponenty stworzone przez użytkownika. Pomimo wszystkich tych braków biblioteka `react-native-mock` pozwala przetestować bardzo dużo typowych scenariuszy.
+
+Oryginalny projekt znajduje się na https://github.com/lelandrichardson/react-native-mock i rozpowszechniany jest na licencji MIT (plik `LICENCE` w katalogu projektu). Moje zmiany dostępne są na https://github.com/gswirski/react-native-mock.
 
 ### Kod
 
@@ -770,11 +793,3 @@ index 26421d0..8f4883c 100644
 -- 
 2.7.4 (Apple Git-66)
 ```
-
-## Podsumowanie
-
-Wprowadzone przeze mnie zmiany usprawniają pracę z biblioteką `react-native-mock` i pozwalają na testowanie interakcji z użytkownikiem. Zaprezentowane podejście do testowania Reacta Native z sukcesem zostało wykorzystane w komercyjnym projekcie (nie jest publicznie dostępny). Kod z przytoczonego wyżej przykładu kompiluje i wykonuje się bez błędów.
-
-Sporo rzeczy wciąż pozostaje do zrobienia. Nie wszystkie gesty użytkownika są obsługiwane - brakuje wsparcia m.in dla długich kliknięć, 3D Touch (iPhone 6s), przesuwania i "szczypania" dwoma palcami (powiększanie/pomniejszanie). Nie wszystkie komponenty Reacta Native są obsługiwane. Nie do końca jest jasne jak zastępować natywne komponenty stworzone przez użytkownika. Pomimo wszystkich tych braków biblioteka `react-native-mock` pozwala przetestować bardzo dużo typowych scenariuszy.
-
-Oryginalny projekt znajduje się na https://github.com/lelandrichardson/react-native-mock i rozpowszechniany jest na licencji MIT (plik `LICENCE` w katalogu projektu). Moje zmiany dostępne są na https://github.com/gswirski/react-native-mock.
